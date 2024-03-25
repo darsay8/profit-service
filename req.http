@@ -1,0 +1,42 @@
+
+@url = http://localhost:8091 
+
+#Get Orders
+GET {{url}}/orders
+
+###
+
+#Get Order by Id
+GET {{url}}/orders/1
+
+###
+
+#Get Num of Orders
+GET {{url}}/orders/total
+
+###
+
+#Get Total Amount of Order by Id
+GET {{url}}/orders/1/totalAmount
+
+###
+
+#Get Total Amount of all Orders
+GET {{url}}/orders/totalAmount
+
+###
+
+GET {{url}}/orders/totalAmount/daily
+
+###
+
+GET {{url}}/orders/totalAmount/monthly
+
+###
+
+GET {{url}}/orders/totalAmount/yearly
+
+###
+
+#Not Found
+GET {{url}}/not/found
