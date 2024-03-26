@@ -34,11 +34,21 @@ public class OrderController {
     Order order2 = new Order(2, user3, List.of(product4, product, product6), "2024-03-25T12:00:00Z");
     Order order3 = new Order(3, user2, List.of(product5, product2, product3), "2024-03-25T12:00:00Z");
     Order order4 = new Order(4, user4, List.of(product6, product4, product), "2024-03-25T12:00:00Z");
+    Order order5 = new Order(5, user, List.of(product, product2, product3), "2024-03-26T12:00:00Z");
+    Order order6 = new Order(6, user3, List.of(product4, product, product6), "2024-03-27T12:00:00Z");
+    Order order7 = new Order(7, user2, List.of(product5, product2, product3), "2024-03-28T12:00:00Z");
+    Order order8 = new Order(8, user4, List.of(product6, product4, product), "2024-03-29T12:00:00Z");
+    Order order9 = new Order(9, user, List.of(product, product2, product3), "2024-03-30T12:00:00Z");
 
     orders.add(order);
     orders.add(order2);
     orders.add(order3);
     orders.add(order4);
+    orders.add(order5);
+    orders.add(order6);
+    orders.add(order7);
+    orders.add(order8);
+    orders.add(order9);
   }
 
   @GetMapping("/orders")

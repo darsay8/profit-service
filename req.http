@@ -7,7 +7,7 @@ GET {{url}}/orders
 ###
 
 #Get Order by Id
-GET {{url}}/orders/1
+GET {{url}}/orders/2
 
 ###
 
@@ -17,7 +17,7 @@ GET {{url}}/orders/total
 ###
 
 #Get Total Amount of Order by Id
-GET {{url}}/orders/1/totalAmount
+GET {{url}}/orders/2/totalAmount
 
 ###
 
