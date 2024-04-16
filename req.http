@@ -1,42 +1,115 @@
 
-@url = http://localhost:8091 
+@url = http://localhost:8091/api
 
-#Get Orders
+### Get Orders ###
+######################################################
+
 GET {{url}}/orders
 
 ###
 
-#Get Order by Id
-GET {{url}}/orders/2
+### Get Order by Id ###
+######################################################
+
+GET {{url}}/orders/1
 
 ###
 
-#Get Num of Orders
+### Create Customer ###
+######################################################
+
+POST {{url}}/customers
+Content-Type: application/json
+
+{
+  "name": "James",
+  "email": "james@mail.com"
+},
+
+###
+
+
+### Create Order ###
+######################################################
+
+POST {{url}}/orders
+Content-Type: application/json
+
+{
+  "customer": {
+    "id": 1, 
+    "name": "James",
+    "email": "james@mail.com"
+  },
+  "products": []
+
+}
+
+###
+
+### Add Products to Order ###
+######################################################
+
+POST {{url}}/orders/1/products
+Content-Type: application/json
+
+{
+  "name": "Product Name",
+  "description": "Product Description",
+  "price": 9.99,
+  "stock": 100
+}
+
+###
+
+### Get Products ###
+######################################################
+
+GET {{url}}/products
+
+###
+
+### Get Num of Orders ###
+######################################################
+
 GET {{url}}/orders/total
 
 ###
 
-#Get Total Amount of Order by Id
-GET {{url}}/orders/2/totalAmount
+### Get Total Amount of Order by Id ###
+######################################################
+
+GET {{url}}/orders/1/totalAmount
 
 ###
 
-#Get Total Amount of all Orders
+### Get Total Amount of all Orders ###
+######################################################
+
 GET {{url}}/orders/totalAmount
 
 ###
 
+### Get Total Amount of all Orders Daily ###
 GET {{url}}/orders/totalAmount/daily
 
 ###
+
+### Get Total Amount of all Orders Monthly ###
+######################################################
 
 GET {{url}}/orders/totalAmount/monthly
 
 ###
 
+### Get Total Amount of all Orders Yearly ###
+######################################################
+
 GET {{url}}/orders/totalAmount/yearly
 
 ###
 
-#Not Found
+### Not Found ###
+######################################################
+
 GET {{url}}/not/found
