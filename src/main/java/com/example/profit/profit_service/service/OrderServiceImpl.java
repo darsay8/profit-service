@@ -75,7 +75,6 @@ public class OrderServiceImpl implements OrderService {
     existingOrder.setTimestamp(order.getTimestamp());
 
     return orderRepository.save(existingOrder);
-
   }
 
   @Override
@@ -158,22 +157,26 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public Customer createCustomer(Customer customer) {
+    if (customer == null) {
+      throw new IllegalArgumentException("Customer object cannot be null");
+    }
     return customerRepository.save(customer);
   }
 
   @Override
   public Product addProductToOrder(Long id, Product product) {
-
     Order order = orderRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
-
     product.setOrder(order);
-
     return productRepository.save(product);
   }
 
   @Override
-  public List<Product> geProducts() {
+  public List<Product> getProducts() {
+
+    if (productRepository.findAll().isEmpty()) {
+      throw new IllegalStateException("No orders found");
+    }
     return productRepository.findAll();
   }
 
@@ -193,7 +196,6 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
-
     return totalAmount;
   }
 
@@ -210,7 +212,6 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
-
     return totalAmount;
   }
 
@@ -227,7 +228,6 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
-
     return totalAmount;
   }
 

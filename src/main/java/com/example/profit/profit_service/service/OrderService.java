@@ -33,6 +33,6 @@ public interface OrderService {
 
   Product addProductToOrder(Long id, Product product);
 
-  List<Product> geProducts();
+  List<Product> getProducts();
 
 }
