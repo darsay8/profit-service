@@ -3,9 +3,11 @@ package com.example.profit.profit_service.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,6 +64,20 @@ public class OrderController {
     logger.info("Creating a new Order");
     Order createdOrder = orderService.createOrder(order);
     return ResponseEntity.ok(createdOrder);
+  }
+
+  @PutMapping("/orders/{id}")
+  public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+    logger.info("Updating post with id {}.", id);
+    Order updatedOrder = orderService.updateOrder(id, order);
+    return ResponseEntity.ok(updatedOrder);
+  }
+
+  @DeleteMapping("/orders/{id}")
+  public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    logger.info("Deleting post with id {}.", id);
+    orderService.deleteOrder(id);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/customers")

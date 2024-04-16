@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
     existingOrder.setCustomer(order.getCustomer());
     existingOrder.setProducts(order.getProducts());
-    existingOrder.setTimestamp(order.getTimestamp());
+    existingOrder.setTimestamp(LocalDateTime.now());
 
     return orderRepository.save(existingOrder);
   }
