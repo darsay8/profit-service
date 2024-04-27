@@ -1,16 +1,13 @@
 package com.example.profit.profit_service.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.profit.profit_service.model.Customer;
 import com.example.profit.profit_service.model.Order;
@@ -23,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -34,144 +33,185 @@ public class OrderController {
   private OrderService orderService;
 
   @GetMapping("/orders")
-  public ResponseEntity<List<Order>> getOrders() {
+  public CollectionModel<EntityModel<Order>> getOrders() {
     List<Order> orders = orderService.getOrders();
+
     if (orders.isEmpty()) {
       logger.info("No orders found");
-      return ResponseEntity.noContent().build();
+      return CollectionModel.empty();
     } else {
       logger.info("Orders found: {}", orders.size());
-      return ResponseEntity.ok(orders);
+
+      List<EntityModel<Order>> orderResources = orders.stream()
+          .map(order -> EntityModel.of(order, WebMvcLinkBuilder
+              .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(order.getId())).withSelfRel()))
+          .collect(Collectors.toList());
+
+      CollectionModel<EntityModel<Order>> resources = CollectionModel.of(orderResources,
+          WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OrderController.class).getOrders()).withSelfRel());
+
+      return resources;
     }
   }
 
   @GetMapping("/orders/{id}")
-  public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-    return orderService.getOrderById(id)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> {
-          logger.warn("Order with id {} not found.", id);
-          return ResponseEntity.notFound().build();
-        });
+  public EntityModel<Order> getOrderById(@PathVariable Long id) {
+    Optional<Order> order = orderService.getOrderById(id);
+
+    if (order.isPresent()) {
+      logger.info("Order found: {}", order.get().getId());
+      EntityModel<Order> postEntityModel = EntityModel.of(order.get(),
+          WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(id)).withSelfRel(),
+          WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrders()).withRel("orders"));
+      return postEntityModel;
+
+    } else {
+      logger.warn("Order with id {} not found.", id);
+      throw new OrderNotFoundException("Order with id " + id + " not found");
+    }
+
   }
 
   @PostMapping("/orders")
-  public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-    if (order == null) {
-      logger.error("Order object cannot be null");
-      return ResponseEntity.badRequest().build();
-    }
-    logger.info("Creating a new Order");
+  public EntityModel<Order> createOrder(@RequestBody Order order) {
+    logger.info("Creating a new order.");
     Order createdOrder = orderService.createOrder(order);
-    return ResponseEntity.ok(createdOrder);
+    EntityModel<Order> postEntityModel = EntityModel.of(createdOrder,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(createdOrder.getId()))
+            .withSelfRel(),
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrders()).withRel("orders"));
+    return postEntityModel;
   }
 
   @PutMapping("/orders/{id}")
-  public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
-    logger.info("Updating post with id {}.", id);
+  public EntityModel<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+    logger.info("Updating order with id {}.", id);
     Order updatedOrder = orderService.updateOrder(id, order);
-    return ResponseEntity.ok(updatedOrder);
+    EntityModel<Order> postEntityModel = EntityModel.of(updatedOrder,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(id)).withSelfRel(),
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrders()).withRel("orders"));
+    return postEntityModel;
   }
 
   @DeleteMapping("/orders/{id}")
   public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-    logger.info("Deleting post with id {}.", id);
+    logger.info("Deleting order with id {}.", id);
     orderService.deleteOrder(id);
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/customers")
-  public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-    if (customer == null) {
-      logger.error("Customer object cannot be null");
-      return ResponseEntity.badRequest().build();
+  @GetMapping("/customers")
+  public CollectionModel<EntityModel<Customer>> getAllCustomers() {
+    List<Customer> customers = orderService.getAllCustomers();
+
+    if (customers.isEmpty()) {
+      logger.info("No customers found.");
+      return CollectionModel.empty();
+    } else {
+      logger.info("Returning {} customers.", customers.size());
+
+      List<EntityModel<Customer>> customerResources = customers.stream()
+          .map(author -> EntityModel.of(author))
+          .collect(Collectors.toList());
+
+      CollectionModel<EntityModel<Customer>> resources = CollectionModel.of(customerResources);
+
+      return resources;
     }
+  }
+
+  @PostMapping("/customers")
+  public EntityModel<Customer> createCustomer(@RequestBody Customer customer) {
     logger.info("Creating a new customer.");
     Customer createdCustomer = orderService.createCustomer(customer);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
+
+    return EntityModel.of(createdCustomer, WebMvcLinkBuilder
+        .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllCustomers()).withRel("customers"));
+
   }
 
   @PostMapping("/orders/{id}/products")
-  public ResponseEntity<Product> createProduct(@PathVariable Long id, @RequestBody Product product) {
-    if (product == null) {
-      logger.error("Product object cannot be null");
-      return ResponseEntity.badRequest().build();
-    }
-    logger.info("Creating a new product.");
+  public EntityModel<Product> createProduct(@PathVariable Long id, @RequestBody Product product) {
+    logger.info("Creating a new product for order with id {}.", id);
+
     Product createdProduct = orderService.addProductToOrder(id, product);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+    EntityModel<Product> productEntityModel = EntityModel.of(createdProduct,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(id)).withSelfRel());
+    return productEntityModel;
   }
 
   @GetMapping("/products")
-  public ResponseEntity<List<Product>> getProducts() {
+  public CollectionModel<EntityModel<Product>> getProducts() {
     List<Product> products = orderService.getProducts();
     if (products.isEmpty()) {
       logger.info("No products found");
-      return ResponseEntity.noContent().build();
+      return CollectionModel.empty();
     } else {
       logger.info("Products found: {}", products.size());
-      return ResponseEntity.ok(products);
+
+      List<EntityModel<Product>> productResources = products.stream()
+          .map(product -> EntityModel.of(product, WebMvcLinkBuilder
+              .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getOrderById(product.getOrder().getId()))
+              .withSelfRel()))
+          .collect(Collectors.toList());
+
+      CollectionModel<EntityModel<Product>> resources = CollectionModel.of(productResources);
+
+      return resources;
+
     }
   }
 
   @GetMapping("/orders/total")
-  public ResponseEntity<Integer> getTotalOrders() {
-    List<Order> orders = orderService.getOrders();
-    if (orders.isEmpty()) {
-      logger.info("No orders found");
-      return ResponseEntity.noContent().build();
-    } else {
-      logger.info("Orders found: {}", orders.size());
-      return ResponseEntity.ok(orders.size());
-    }
+  public EntityModel<Map<String, Integer>> getTotalOrders() {
+    logger.info("Getting total orders");
+
+    Integer totalOrders = orderService.getTotalOrders();
+
+    Map<String, Integer> totalMap = new HashMap<>();
+    totalMap.put("totalOrders", totalOrders);
+
+    return EntityModel.of(totalMap,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getTotalOrders()).withSelfRel());
   }
 
   @GetMapping("/orders/{id}/totalAmount")
-  public ResponseEntity<Double> getTotalAmountById(@PathVariable int id) {
-    List<Order> orders = orderService.getOrders();
-    for (Order order : orders) {
-      if (order.getId() == id) {
-        double totalAmount = 0.0;
-        for (Product product : order.getProducts()) {
-          totalAmount += product.getPrice();
-        }
-        logger.info("Total Amount of Order id {}: {}", order.getId(), totalAmount);
-        return ResponseEntity.ok(totalAmount);
-      }
-    }
-    logger.info("No orders with id: {} found", id);
-    return ResponseEntity.notFound().build();
+  public EntityModel<Map<String, Double>> getTotalAmountById(@PathVariable Long id) {
+    double totalAmount = orderService.getTotalAmountById(id);
+
+    Map<String, Double> response = new HashMap<>();
+    response.put("totalAmount", totalAmount);
+    return EntityModel.of(response,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getTotalAmountById(id)).withSelfRel());
   }
 
   @GetMapping("/orders/totalAmount")
-  public ResponseEntity<Double> getTotalAmount() {
+  public EntityModel<Map<String, Double>> getTotalAmount() {
+
     List<Order> orders = orderService.getOrders();
-    if (orders.isEmpty()) {
-      logger.error("No orders found");
-      return ResponseEntity.noContent().build();
-    } else {
-      double totalAmount = 0.0;
-      for (Order order : orders) {
-        for (Product product : order.getProducts()) {
-          totalAmount += product.getPrice();
-        }
+    double totalAmount = 0.0;
+    for (Order order : orders) {
+      for (Product product : order.getProducts()) {
+        totalAmount += product.getPrice();
       }
-      logger.info("Total Amount of all orders = {}", totalAmount);
-      return ResponseEntity.ok(totalAmount);
     }
+    Map<String, Double> response = new HashMap<>();
+    response.put("totalAmount", totalAmount);
+    return EntityModel.of(response,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getTotalAmount()).withSelfRel());
   }
 
   @GetMapping("/orders/totalAmount/{period}")
-  public ResponseEntity<Map<String, Double>> getTotalAmountByPeriod(@PathVariable String period) {
+  public EntityModel<Map<String, Double>> getTotalAmountByPeriod(@PathVariable String period) {
     double totalAmount = orderService.getTotalAmountByPeriod(period);
-    if (totalAmount == 0.0) {
-      logger.error("No orders found or invalid period: ", period);
-      return ResponseEntity.badRequest().build();
-    }
+
     Map<String, Double> response = new HashMap<>();
     response.put(period, totalAmount);
     logger.info("Total Amount = {}", totalAmount);
-    return ResponseEntity.ok(response);
+
+    return EntityModel.of(response,
+        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getTotalAmountByPeriod(period))
+            .withSelfRel());
   }
 
   @GetMapping("/**")

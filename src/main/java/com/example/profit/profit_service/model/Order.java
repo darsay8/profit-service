@@ -11,14 +11,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.hateoas.RepresentationModel;
+
 @Data
 @Entity
 @Table(name = "orders")
-public class Order {
+@EqualsAndHashCode(callSuper = false)
+public class Order extends RepresentationModel<Order> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_order")
