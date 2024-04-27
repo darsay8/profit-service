@@ -26,7 +26,7 @@ public class OrderControllerTest {
   private MockMvc mockMvc;
 
   @MockBean
-  private OrderService orderService;
+  private OrderService orderServiceMock;
 
   @Test
   public void testGetOrders() throws Exception {
@@ -34,13 +34,17 @@ public class OrderControllerTest {
     order.setId(1L);
     order.setProducts(Arrays.asList(new Product(), new Product()));
 
-    when(orderService.getOrders()).thenReturn(Arrays.asList(order));
+    Order order2 = new Order();
+    order2.setId(2L);
+    order2.setProducts(Arrays.asList(new Product(), new Product()));
+
+    when(orderServiceMock.getOrders()).thenReturn(Arrays.asList(order, order2));
 
     mockMvc.perform(MockMvcRequestBuilders.get("/api/orders"))
         .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(1)))
-        .andExpect(MockMvcResultMatchers.jsonPath("$[0].id", Matchers.is(1)))
-        .andExpect(MockMvcResultMatchers.jsonPath("$[0].products", Matchers.hasSize(2)));
+        .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.aMapWithSize(2)))
+        .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.orderList[0].id", Matchers.is(1)))
+        .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.orderList[0].products", Matchers.hasSize(2)));
   }
 
   @Test
@@ -49,7 +53,7 @@ public class OrderControllerTest {
     order.setId(1L);
     order.setProducts(Arrays.asList(new Product(), new Product()));
 
-    when(orderService.getOrderById(1L)).thenReturn(Optional.of(order));
+    when(orderServiceMock.getOrderById(1L)).thenReturn(Optional.of(order));
 
     mockMvc.perform(MockMvcRequestBuilders.get("/api/orders/1"))
         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -63,7 +67,7 @@ public class OrderControllerTest {
     order.setId(1L);
     order.setProducts(Arrays.asList(new Product(), new Product()));
 
-    when(orderService.createOrder(order)).thenReturn(order);
+    when(orderServiceMock.createOrder(order)).thenReturn(order);
 
     mockMvc.perform(MockMvcRequestBuilders.post("/api/orders")
         .contentType("application/json")
