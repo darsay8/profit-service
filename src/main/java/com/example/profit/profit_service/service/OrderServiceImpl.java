@@ -152,6 +152,9 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public List<Customer> getAllCustomers() {
+    if (customerRepository.findAll().isEmpty()) {
+      throw new IllegalStateException("No customers found");
+    }
     return customerRepository.findAll();
   }
 
