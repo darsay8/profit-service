@@ -3,7 +3,6 @@ package com.example.profit.profit_service.controller;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.hamcrest.Matchers;
