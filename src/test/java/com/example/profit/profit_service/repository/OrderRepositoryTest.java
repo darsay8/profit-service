@@ -48,4 +48,15 @@ public class OrderRepositoryTest {
     assertFalse(orderRepository.findAll().isEmpty());
   }
 
+  @Test
+  public void testOrderRepositoryDelete() {
+    Order order = new Order();
+
+    Order savedOrder = orderRepository.save(order);
+
+    orderRepository.deleteById(savedOrder.getId());
+
+    assertFalse(orderRepository.findById(savedOrder.getId()).isPresent());
+  }
+
 }

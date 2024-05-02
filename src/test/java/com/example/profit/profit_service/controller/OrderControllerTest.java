@@ -76,4 +76,19 @@ public class OrderControllerTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.products", Matchers.hasSize(2)));
   }
 
+  @Test
+  public void testUpdateOrder() throws Exception {
+    Order order = new Order();
+    order.setId(1L);
+    order.setProducts(Arrays.asList(new Product(), new Product()));
+
+    when(orderServiceMock.updateOrder(order.getId(), order)).thenReturn(order);
+
+    mockMvc.perform(MockMvcRequestBuilders.put("/api/orders/1")
+        .contentType("application/json")
+        .content("{\"id\":1,\"products\":[{},{}]}"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.products", Matchers.hasSize(2)));
+  }
 }

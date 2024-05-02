@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,8 @@ import com.example.profit.profit_service.model.Order;
 import com.example.profit.profit_service.model.Product;
 import com.example.profit.profit_service.repository.CustomerRepository;
 import com.example.profit.profit_service.repository.OrderRepository;
+
+import oracle.jdbc.proxy.annotation.Post;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -106,4 +110,26 @@ public class OrderServiceTest {
     assertEquals(1L, newOrder.getId());
   }
 
+  @Test
+  public void testDeleteOrder() {
+    Customer customer = new Customer();
+    customer.setName("Test User");
+
+    when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+
+    Order order = new Order();
+    order.setCustomer(customer);
+    order.setProducts(new ArrayList<Product>());
+
+    when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    Order savedOrder = orderService.createOrder(order);
+
+    when(orderRepository.existsById(savedOrder.getId())).thenReturn(true);
+
+    orderService.deleteOrder(savedOrder.getId());
+
+    verify(orderRepository, times(1)).deleteById(savedOrder.getId());
+
+  }
 }
