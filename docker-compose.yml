@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '8091:8091'
+      - ${DOCKER_PORTS}
     environment:
-      - spring.datasource.url=jdbc:oracle:thin:@<database>?TNS_ADMIN=/app/oracle_wallet/
-      - spring.datasource.username=<username>
-      - spring.datasource.password=<password>
-    restart: always
+      - spring.datasource.url=${DATASOURCE_DOCKER_URL}
+      - spring.datasource.username=${DATASOURCE_USERNAME}
+      - spring.datasource.password=${DATASOURCE_PASSWORD}
+    restart: always'
